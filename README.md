@@ -12,11 +12,15 @@ magically transported from the DM6 to the SR16/18!
 # Requirements
 * Adafruit Feather RP2040 USB Host
 * Adafruit MIDI Featherwing
-* Adafruit 128x64 OLED display (but you could use something else)
+* Adafruit 128x64 OLED display (but I don't like the OLED 'burn-in' issue, so you could use something else)
 * Breadboard, a few wires.
 * Developed with CircuitPython 11 alpha, so far.
 
 
 # Things to Do
 (See also the GitHub repo, https://github.com/RobCranfill/USBtoDIN/issues)
+
+* If no Host MIDI, fail over to the built-in USB MIDI (what do you call that? The one that comes in on the power cable.)
+  * This would be mainly just for testing; useful otherwise?
+
 

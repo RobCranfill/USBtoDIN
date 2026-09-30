@@ -1,9 +1,10 @@
 # open MIDI device, show messages received.
 # works on all MIDI devices except DM6
 
+import board
+import busio
 import time
 import usb.core
-import busio
 
 import adafruit_midi
 import adafruit_usb_host_midi
@@ -36,6 +37,7 @@ import fw128x64OLED
 
 print(f"{__name__} starting....")
 
+MIDI_IN_CHANNEL = (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15) # range(16) # right?
 MIDI_OUT_CHANNEL = 10 # On SR16, channel 1 is bass, 10 is drums
 
 
@@ -60,29 +62,66 @@ print("looking for USB MIDI device...")
 #
 display.set_text_1("No MIDI input...")
 
-raw_midi = None
-ticks = 0
-while raw_midi is None:
-    print("scanning USB bus...")
-    ticks += 1
-    if ticks < 10:
-        spin(display)
-    else:
-        display.blank_screen()
+import usb_midi
 
-    time.sleep(.5)
-    n_found = 0
-    for device in usb.core.find(find_all=True):
-        n_found += 1
-        try:
-            raw_midi = adafruit_usb_host_midi.MIDI(device, timeout=0.1)
-            print(f"Found device {hex(device.idVendor)}:{hex(device.idProduct)}")
-        except Exception as e:
-            print(f" EXCEPTION {e}")
-            continue
-        if raw_midi is None:
-            time.sleep(1)
-    print(f" Found {n_found} USB devices...")
+def get_builtin_midi():
+    '''Use the MIDI that comes in on the power cable?'''
+    # from  https://learn.adafruit.com/qt-py-rp2040-usb-to-serial-midi-friends/coding-the-qt-py-rp2040-usb-to-serial-midi-friends
+
+    midi = adafruit_midi.MIDI(
+
+        midi_in=usb_midi.ports[0],
+        midi_out=None,
+
+        in_channel=MIDI_IN_CHANNEL,
+        # in_channel = (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15),
+
+        # out_channel=(midi_out_channel - 1),
+        out_channel = None,
+
+        debug=True
+    )
+    return midi
+
+
+print("scanning USB bus...")
+time.sleep(1)
+n_found = 0
+raw_midi_in = None
+for device in usb.core.find(find_all=True):
+    n_found += 1
+    try:
+        raw_midi_in = adafruit_usb_host_midi.MIDI(device, timeout=0.1)
+        print(f"Found device {hex(device.idVendor)}:{hex(device.idProduct)}")
+    except Exception as e:
+        print(f" EXCEPTION {e}")
+        continue
+    if raw_midi_in is None:
+        time.sleep(1)
+print(f" Found {n_found} USB host devices...")
+
+if n_found > 0:
+
+    # TODO: wrap with try in case it doesn't work?
+    print("Trying as MIDI device....")
+    midi_device = adafruit_midi.MIDI(midi_in=raw_midi_in)
+    # print(f"    {midi_device.__dict__=}")
+
+else:
+    print("Using built-in MIDI?.....")
+    midi = adafruit_midi.MIDI(
+
+        midi_in=usb_midi.ports[0],
+        midi_out=None,
+
+        in_channel=MIDI_IN_CHANNEL,
+        # in_channel = (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15),
+
+        # out_channel=(midi_out_channel - 1),
+        # out_channel = None
+
+        )
+    print("Built-in MIDI OK?")
 
 # Set up MIDI out
 
@@ -96,27 +135,23 @@ def panic(m):
 uart = busio.UART(board.TX, board.RX, baudrate=31250, timeout=0.001)  # init UART
 
 # No UART input, only output 
-midi = adafruit_midi.MIDI(
-    midi_out=uart,
-    out_channel=(midi_out_cMIDI_OUT_CHANNELhannel - 1),
-    debug=False,
+midi_out = adafruit_midi.MIDI(
+    midi_out = uart,
+    out_channel = MIDI_OUT_CHANNEL - 1,
+    debug = False,
     )
 
-panic(midi)
+panic(midi_out)
 
-# TODO: wrap with try in case it doesn't work?
-print("Trying as MIDI device....")
-midi_device = adafruit_midi.MIDI(midi_in=raw_midi)
-# print(f"    {midi_device.__dict__=}")
 
-m_in = midi_device._midi_in 
-print(f"MIDI device: {m_in}")
-display.set_text_1(m_in)
+# midi_in = midi_device._midi_in 
+# print(f"MIDI device: {midi_in}")
+# display.set_text_1(midi_in)
 
 while True:
     msg = midi_device.receive()
     if msg:
-        if isinstance(msg, ActiveSensing):
+        if isinstance(msg, active_sensing.ActiveSensing):
             pass
         else:
             print(f"  {msg}")
