@@ -137,7 +137,7 @@ uart = busio.UART(board.TX, board.RX, baudrate=31250, timeout=0.001)  # init UAR
 # No UART input, only output 
 midi_out = adafruit_midi.MIDI(
     midi_out = uart,
-    out_channel = MIDI_OUT_CHANNEL - 1,
+    out_channel = MIDI_OUT_CHANNEL,
     debug = False,
     )
 
@@ -148,10 +148,22 @@ panic(midi_out)
 # print(f"MIDI device: {midi_in}")
 # display.set_text_1(midi_in)
 
+print("Ready!")
+
 while True:
     msg = midi_device.receive()
     if msg:
-        if isinstance(msg, active_sensing.ActiveSensing):
+        if isinstance(msg, ActiveSensing):
             pass
         else:
             print(f"  {msg}")
+            if midi_out is not None:
+                if msg.velocity != 0:
+                    # msg.channel = 10
+                    # print(f"    sending {msg} to DIN...")
+                    # midi_out.send(msg)
+
+                    msg2 = NoteOn(msg.note, msg.velocity, channel=MIDI_OUT_CHANNEL)
+                    print(f"    sending {msg2} to DIN...")
+                    midi_out.send(msg2)
+
