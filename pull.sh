@@ -2,7 +2,9 @@
 echo Copying files from $CP...
 
 FILES="README.md
-USBtoDIN.py"
+LED14.py
+USBtoDIN.py
+USBtoDIN_LED14.py"
 
 for f in $FILES
 do
