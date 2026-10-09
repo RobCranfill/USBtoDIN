@@ -80,92 +80,66 @@ print("looking for USB MIDI device...")
 display.set_text_1("No MIDI input...")
 
 
+# Create UART first
+uart = busio.UART(board.TX, board.RX, baudrate=31250, timeout=0.001)
+print("UART OK?")
+
+
 print("Scanning USB bus...")
 time.sleep(1)
-n_found = 0
-host_midi_in = None
+midi_interfaces = None
 for device in usb.core.find(find_all=True):
-    n_found += 1
     try:
-        print(f"  Found device {hex(device.idVendor)}:{hex(device.idProduct)}")
+        print(f" * Found device {hex(device.idVendor)}:{hex(device.idProduct)}")
         host_midi_in = adafruit_usb_host_midi.MIDI(device, timeout=0.1)
-        # count number of *MIDI* devices?
+        print("Trying as MIDI device....")
+        try:
+            midi_interfaces = adafruit_midi.MIDI(
+                    midi_in=host_midi_in,
+                    midi_out=uart,
+                    in_channel=MIDI_ALL_CHANNELS,
+                    out_channel = MIDI_OUT_CHANNEL-1
+                    )
+            print("  OK!")
+        except Exception as e:
+            print(f"Not a MIDI device??? {e}")
         break
     except Exception as e:
         print(f" EXCEPTION {e}")
         continue
-    if host_midi_in is None:
-        time.sleep(1)
-print(f"  Found {n_found} USB host device(s)...")
-
-uart = busio.UART(board.TX, board.RX, baudrate=31250, timeout=0.001)
-
-if n_found > 0:
-
-    print("Trying as MIDI device....")
-    midi_in = None
-    try:
-        midi = adafruit_midi.MIDI(
-                midi_in=host_midi_in,
-                midi_out=uart,
-                in_channel=MIDI_ALL_CHANNELS,
-                out_channel = MIDI_OUT_CHANNEL-1
-                )
-        print("  OK!")
-    except Exception as e:
-        print(f"Not a MIDI device??? {e}")
-
-else:
-    # Use built-in MIDI input from USB power cable?
-
-    print("Using built-in MIDI?.....")
-    midi = adafruit_midi.MIDI(
-
-        midi_in = usb_midi.ports[0],
-        midi_out = uart,
-
-        in_channel = MIDI_ALL_CHANNELS,
-        out_channel = MIDI_OUT_CHANNEL-1,
-
-        debug = False
-        )
-    print("Built-in MIDI OK?")
 
 
+if midi_interfaces is None:
+    print("CAN'T SET UP???")
+    while True:
+        pass
+print("OK!")
 
+panic(midi_interfaces)
+
+for n in [48, 48, 49]:
+    midi_interfaces.send(NoteOn(n, 10))
+    time.sleep(.15)
 print("ta DUM!")
-midi.send(NoteOn(48, 100))
-time.sleep(.5)
-midi.send(NoteOn(48, 100))
-time.sleep(.5)
-midi.send(NoteOn(48, 100))
-print("ta DUM!")
-time.sleep(2)
 
-panic(midi)
-
-
-# midi_in = midi_in._midi_in 
-# print(f"MIDI device: {midi_in}")
-# display.set_text_1(midi_in)
 
 print("Ready!")
 
 while True:
-    msg = midi.receive()
+    msg = midi_interfaces.receive()
     if msg:
         if isinstance(msg, ActiveSensing):
             pass
         else:
             print(f"Got {msg}")
-            if midi is not None:
+            # if midi is not None:
 
-                # msg.channel = 10
-                # print(f"    sending {msg} to DIN...")
-                midi.send(msg)
+            # msg.channel = 10
+            # print(f"    sending {msg} to DIN...")
+            midi_interfaces.send(msg)
 
-                # have to override the channel!
-                msg2 = NoteOn(msg.note, msg.velocity, channel=MIDI_OUT_CHANNEL-1)
-                print(f" >>   sending {msg2} to DIN...")
-                # midi.send(msg2)
+            # have to override the channel!
+            # msg2 = NoteOn(msg.note, msg.velocity, channel=MIDI_OUT_CHANNEL-1)
+            # print(f" >>   sending {msg2} to DIN...")
+            # midi.send(msg2)
 
