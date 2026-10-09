@@ -9,6 +9,11 @@ DIN MIDI connectors, whereas the DM6 uses USB MIDI, so I can't just hook them to
 Hence this project: Plug the the two devices into this thingamajig, and MIDI notes are 
 magically transported from the DM6 to the SR16/18!
 
+As of early October, I finally have this project actually working! The proof-of-concept
+show here works fine. I need to figure out exactly how I want to house this device,
+and what, if any, user interface it will have.
+
+
 # Requirements
 * Adafruit Feather RP2040 USB Host
 * Adafruit MIDI Featherwing
@@ -20,7 +25,10 @@ magically transported from the DM6 to the SR16/18!
 # Things to Do
 (See also the GitHub repo, https://github.com/RobCranfill/USBtoDIN/issues)
 
-* If no Host MIDI, fail over to the built-in USB MIDI (what do you call that? The one that comes in on the power cable.)
+* What user interface? It doesn't really need one at all, if everything works as intended.
+* I *really* don't like using an OLED for the display: it suffers from burn-in, and for
+a device like this that may just stay on indefinitly, that ain't good.
+* (maybe?) If no Host MIDI, fail over to the built-in USB MIDI (what do you call that? The one that comes in on the power cable.)
   * This would be mainly just for testing; useful otherwise?
 
 
