@@ -26,16 +26,26 @@ class display():
 
         self._display.print(intial_text)
 
-    def print(self, text):
+    def print(self, text, decimal_places=4):
+        '''Expose the simple 'print' method'''
+        self._display.print(text, decimal=decimal_places)
+
+    def print_then_erase(self, text, delay_sec=1):
         '''Expose the simple 'print' method'''
         self._display.print(text)
+        time.sleep(delay_sec)
+        self._display.print("    ")
+
+    def show_error_and_spin(self, m_text):
+        self._display.marquee(m_text, loop=True)
 
     def set_text(self, text):
         pass
-
     
-    def marquee_once(self, m_text):
-        self._display.marquee(m_text, loop=False)
+    def marquee_once(self, m_text, delay=0.1):
+        print(f" * marquee_once: '{m_text}'")
+
+        self._display.marquee(m_text, delay, loop=False)
     
     def marquee_forever(self, m_text):
         self._display.marquee(m_text, loop=True)

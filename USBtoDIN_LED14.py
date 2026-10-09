@@ -71,27 +71,26 @@ def show_error_and_spin(led14display, error_msg):
 
 
 # ----------------- start
+print(f"\nrunning {__name__}")
 
 display = LED14.display("")
 display.marquee_once("USB to DIN - LED version    ")
 
-# display.set_text_1(f"{__name__} starting...")
-# display.set_text_2("")
-
-print(f"\nrunning {__name__}")
-print("looking for USB MIDI device...")
-
-# I'd like to scan the USB bus for all devices,
-# and find at least one that supports MIDI.
-# The following code does not do that. :-/
-#
-# display.set_text_1("No MIDI input...")
-
 
 # Create UART first
+#
 uart = busio.UART(board.TX, board.RX, baudrate=31250, timeout=0.001)
-print("UART OK?")
+print("UART OK")
+display.print_then_erase("U OK")
 
+
+# Find MIDI device. This just assumes the first one found is appropriate.
+#
+print("looking for USB MIDI device...")
+
+t = time.monotonic()
+display.marquee_once("looking for USB MIDI in....    ")
+print(f" toook {time.monotonic() - t} seconds")
 
 print("Scanning USB bus...")
 time.sleep(1)
@@ -116,20 +115,21 @@ for device in usb.core.find(find_all=True):
         print(f" EXCEPTION {e}")
         continue
 
-
-if midi_interfaces is None:
+test_fail = False
+if (midi_interfaces is None) or test_fail:
     print("CAN'T SET UP???")
-    while True:
-        pass
+    display.show_error_and_spin("Can't find MIDI out.    ")
+
 print("OK!")
+display.print_then_erase("M OK")
 
 
 # TODO: how? would this take place of 'panic'?
 # midi_interfaces.send(Reset(MIDI_OUT_CHANNEL-1))
 
-
 # panic(midi_interfaces)
 
+# Play startup sound!
 for n in [48, 48, 49]:
     midi_interfaces.send(NoteOn(n, 10))
     time.sleep(.15)
@@ -138,15 +138,30 @@ print("ta DUM!")
 
 print("Ready!")
 
+# Is this all we do?
+# Should we re-map anything? Filter anything?
+#
+msg_count = 0
+
 while True:
     msg = midi_interfaces.receive()
     if msg:
+
         if isinstance(msg, ActiveSensing):
             continue
+
         if isinstance(msg, MIDIBadEvent):
             # print("bad?!")
             print(f" ** BAD {msg}")
             continue
+
+        if isinstance(msg, NoteOn):
+            if msg.velocity > 0:
+                msg_count += 1
+                if msg_count > 9999:
+                    msg_count = 0
+                display.print("%4d" % msg_count)
+
         print(f"Got {msg}")
 
         # print(f"    sending {msg} to DIN...")

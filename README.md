@@ -17,8 +17,10 @@ and what, if any, user interface it will have.
 # Requirements
 * Adafruit Feather RP2040 USB Host
 * Adafruit MIDI Featherwing
-* Adafruit 128x64 OLED display (but I don't like the OLED 'burn-in' issue, so you could use something else)
-* Breadboard, a few wires.
+* Display of some sort:
+  * Adafruit 16-segment LED, or
+  * Adafruit 128x64 OLED display
+* Breadboard or Adafruit "doubler"?
 * Developed with CircuitPython 11 alpha, so far.
 
 
