@@ -32,3 +32,29 @@ a device like this that may just stay on indefinitly, that ain't good.
   * This would be mainly just for testing; useful otherwise?
 
 
+
+
+MIDI mapping
+
+DM6 pad   MIDI
+Snare     38
+Rimshot   40
+Tom 1     48
+Tom 2     45
+Tom 3     43
+HH        46
+Crash     49
+Ride      51
+Kick      36
+
+Hat ctl   44
+  preceeded by CC 4 
+
+
+Currently, DM6 works for 
+  snare, t1, hh open, crash, ride, kick
+ not
+  t2, t3, hh (closed), rim
+
+*** Fixed in SR18: System Setup Page 4 - Note Map
+
