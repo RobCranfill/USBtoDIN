@@ -39,8 +39,10 @@ from adafruit_midi.timing_clock import *
 # import fw128x64OLED
 import LED14
 
+PRINT = False
 
-print(f"{__name__} starting....")
+print(f"{__name__} starting....") if PRINT else False
+
 
 # These are the human-readable channel numbers. X-1 will be sent.
 MIDI_ALL_CHANNELS = (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15) # range(16) # right?
@@ -71,7 +73,7 @@ def show_error_and_spin(led14display, error_msg):
 
 
 # ----------------- start
-print(f"\nrunning {__name__}")
+print(f"\nrunning {__name__}") if PRINT else False
 
 display = LED14.display("")
 display.marquee_once("USB to DIN - LED version    ")
@@ -80,19 +82,19 @@ display.marquee_once("USB to DIN - LED version    ")
 # Create UART first
 #
 uart = busio.UART(board.TX, board.RX, baudrate=31250, timeout=0.001)
-print("UART OK")
+print("UART OK") if PRINT else False
 display.print_then_erase("U OK")
 
 
 # Find MIDI device. This just assumes the first one found is appropriate.
 #
-print("looking for USB MIDI device...")
+print("looking for USB MIDI device...") if PRINT else False
 
-t = time.monotonic()
-display.marquee_once("looking for USB MIDI in....    ")
-print(f" toook {time.monotonic() - t} seconds")
+# t = time.monotonic()
+# display.marquee_once("looking for USB MIDI in....    ")
+# print(f" toook {time.monotonic() - t} seconds")
 
-print("Scanning USB bus...")
+print("Scanning USB bus...") if PRINT else False
 time.sleep(1)
 midi_interfaces = None
 for device in usb.core.find(find_all=True):
@@ -120,7 +122,7 @@ if (midi_interfaces is None) or test_fail:
     print("CAN'T SET UP???")
     display.show_error_and_spin("Can't find MIDI out.    ")
 
-print("OK!")
+print("OK!") if PRINT else False
 display.print_then_erase("M OK")
 
 
@@ -130,18 +132,17 @@ display.print_then_erase("M OK")
 # panic(midi_interfaces)
 
 # Play startup sound!
-for n in [48, 48, 49]:
-    midi_interfaces.send(NoteOn(n, 10))
+for n,v in [(48, 100), (48, 100), (49, 127)]:
+    midi_interfaces.send(NoteOn(n, v))
     time.sleep(.15)
-print("ta DUM!")
 
-
-print("Ready!")
+print("Ready!") if PRINT else False
 
 # Is this all we do?
 # Should we re-map anything? Filter anything?
 #
 msg_count = 0
+display.print("   0")
 
 while True:
     msg = midi_interfaces.receive()
@@ -155,14 +156,16 @@ while True:
             print(f" ** BAD {msg}")
             continue
 
+        # We pass on *every* MIDI message except the two bummers above.
+
+        # print(f"    sending {msg} to DIN...")
+        print(f"Sending to UART: {msg=}") if PRINT else False
+        midi_interfaces.send(msg)
+
+        # Update NoteOn display
         if isinstance(msg, NoteOn):
             if msg.velocity > 0:
                 msg_count += 1
                 if msg_count > 9999:
                     msg_count = 0
                 display.print("%4d" % msg_count)
-
-        print(f"Got {msg}")
-
-        # print(f"    sending {msg} to DIN...")
-        midi_interfaces.send(msg)

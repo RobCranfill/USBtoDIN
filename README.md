@@ -26,37 +26,38 @@ and what, if any, user interface it will have.
 
 # Things to Do
 (See also the GitHub repo, https://github.com/RobCranfill/USBtoDIN/issues)
-
-* What user interface? It doesn't really need one at all, if everything works as intended.
-* I *really* don't like using an OLED for the display: it suffers from burn-in, and for
+* Error handling: what to wrap, where, so as to keep going forever?
+* MIDI questions:
+  * Should I send NoteOff messages? Or NoteOn(velocity=0)? Or neither?
+    * Currently passing *all* MIDI messages, which seems to work find and makes the most sense.
+* What user interface? It kinda doesn't need one at all, if everything works as intended.
+  * I *really* don't like using an OLED for the display: it suffers from burn-in, and for
 a device like this that may just stay on indefinitly, that ain't good.
 * (maybe?) If no Host MIDI, fail over to the built-in USB MIDI (what do you call that? The one that comes in on the power cable.)
   * This would be mainly just for testing; useful otherwise?
 
+# Notes
+## MIDI mapping
+This isn't really pertinent to this task, I'm just trying to figure out 
+what I did to the SR18.
+
+ | DM6 pad   | sends MIDI note | SR18 pad |
+ |-----------|-----  |-----|
+ | Kick      | 36  | 1: Kick
+ | Snare     | 38  | 2: Snare1
+ | Rimshot   | 40  | 3: Snare2
+ | Tom 1     | 48  | 7: Tom1
+ | Tom 2     | 45  | 8: Tom2
+ | Tom 3     | 43  | 9: Tom3
+ | HH        | 46  | 4: HH?
+ | Crash     | 49  | 10: Crash
+ | Ride      | 51  | 11: Ride
+ | Hat ctl   | 44  ? preceeded by CC 4? |
 
 
+Currently, mapping works for snare, rimshot, t1, t2, t3, crash, ride, kick
 
-MIDI mapping
+Not sure how to handle High Hat closed or open
 
-DM6 pad   MIDI
-Snare     38
-Rimshot   40
-Tom 1     48
-Tom 2     45
-Tom 3     43
-HH        46
-Crash     49
-Ride      51
-Kick      36
-
-Hat ctl   44
-  preceeded by CC 4 
-
-
-Currently, DM6 works for 
-  snare, t1, hh open, crash, ride, kick
- not
-  t2, t3, hh (closed), rim
-
-*** Fixed in SR18: System Setup Page 4 - Note Map
+*** Fix in SR18: System Setup Page 4 - Note Map
 
