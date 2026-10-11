@@ -12,6 +12,8 @@ import usb_midi
 
 import adafruit_midi
 import adafruit_usb_host_midi
+import neopixel
+
 
 # Must import any events/objects you want to be able to handle. Weird.
 # can't I just:
@@ -144,6 +146,11 @@ print("Ready!") if PRINT else False
 msg_count = 0
 display.print("   0")
 
+# Toggle neopixel LED betwixt full brightness this color, or all off. ?
+pixel = neopixel.NeoPixel(board.NEOPIXEL, 1)
+pixel.fill((0,0,255))
+pixel.brightness = 0.0
+
 while True:
     msg = midi_interfaces.receive()
     if msg:
@@ -168,4 +175,7 @@ while True:
                 msg_count += 1
                 if msg_count > 9999:
                     msg_count = 0
-                display.print("%4d" % msg_count)
+                
+                # display.print("%4d" % msg_count)
+                pixel.brightness = 1 - pixel.brightness
+            
