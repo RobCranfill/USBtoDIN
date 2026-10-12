@@ -72,7 +72,6 @@ print("UART OK") if PRINT else False
 print("looking for USB MIDI device...") if PRINT else False
 
 print("Scanning USB bus...") if PRINT else False
-time.sleep(1)
 midi_interfaces = None
 for device in usb.core.find(find_all=True):
     try:
@@ -82,8 +81,8 @@ for device in usb.core.find(find_all=True):
         try:
             midi_interfaces = adafruit_midi.MIDI(
                     midi_in=host_midi_in,
-                    midi_out=uart,
                     in_channel=MIDI_ALL_CHANNELS,
+                    midi_out=uart,
                     out_channel = MIDI_OUT_CHANNEL-1
                     )
             print("  OK!") if PRINT else False
@@ -94,11 +93,10 @@ for device in usb.core.find(find_all=True):
         print(f" EXCEPTION {e}") if PRINT else False
         continue
 
-test_fail = False
-if (midi_interfaces is None) or test_fail:
-    print("CAN'T SET UP???")
-
-print("OK!") if PRINT else False
+if midi_interfaces is None:
+    print("CAN'T SET UP MIDI???")
+else:
+    print("MIDI OK!") if PRINT else False
 
 
 # TODO: how? would this take place of 'panic'?
@@ -122,12 +120,9 @@ while True:
     msg = midi_interfaces.receive()
     if msg:
 
-        if isinstance(msg, ActiveSensing):
-            continue
-
-        if isinstance(msg, MIDIBadEvent):
-            # print(f" ** BAD {msg}")
-            continue
+        # if isinstance(msg, ActiveSensing) or isinstance(msg, MIDIBadEvent):
+        #     # print(f" ** BAD {msg}")
+        #     continue
 
         # We pass on *every* MIDI message except the two bummers above.
 
